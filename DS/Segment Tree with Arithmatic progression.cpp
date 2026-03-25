@@ -1,0 +1,175 @@
+/*starting with the name of almighty ALLAH*/
+/*solved by RAKIB JOY*/
+// Practice is the only shortcut to improve
+#include<bits/stdc++.h>
+#define ll long long int
+#define pb push_back
+#define vc vector
+#define vi vc<int>
+#define vl vc<ll>
+#define dbg(x) cout<<x<<endl;
+#define mp(x,y) make_pair(x,y)
+#define yes dbg("YES")
+#define no dbg("NO")
+#define tst int t;cin>>t;while(t--)
+#define srt(v) sort(v.begin(),v.end());
+#define rsrt(v) sort(v.rbegin(),v.rend());
+#define rj ios::sync_with_stdio(false);cin.tie(0);
+#define rvs(v) reverse(v.begin(),v.end());
+#define MOD 1000000007
+#define gcd(a,b) __gcd(a,b)
+#define lcm(a,b) (a*b)/gcd(a,b)
+#define PI 2*acos(0.0)
+#define pii pair<int,int>
+#define fr(i,a,b) for(ll i=a;i<=b;i++)
+#define coutv(v) for(auto it:v)cout<<it<<' ';cout<<endl;
+#define cinv(v) for(auto &it:v)cin>>it;
+#define all(v) v.begin(),v.end()
+#define rall(v) v.rbegin(),v.rend()
+#define ld long double
+#define nl '\n'
+const int N=3e5;
+using namespace std;
+mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+int my_rand(int l, int r)
+{
+    return uniform_int_distribution<int>(l, r) (rng);
+}
+///--------------Graph Moves--------------------------------------
+///const int fx[] = {+1,-1,+0,+0};
+///const int fy[] = {+0,+0,+1,-1};
+///const int fx[] = {+0,+0,+1,-1,-1,+1,-1,+1}; ///King's move
+///const int fy[] = {-1,+1,+0,+0,+1,+1,-1,-1}; ///king's Move
+///const int fx[] = {-2,-2,-1,-1,+1,+1,+2,+2}; ///knight's move
+///const int fy[] = {-1,+1,-2,+2,-2,+2,-1,+1}; ///knight's move
+///---------------------------------------------------------------
+int v[N+5];
+ll get_sum(ll a,ll n,ll d)
+{
+    return (((a * 2) + (n - 1) * d) * n) / 2;
+}
+struct node
+{
+    ll a,d;
+    node operator +(const node &t) const
+    {
+        return {a+t.a,d+t.d};
+    }
+};
+ll nth(ll a,ll n,ll d)
+{
+    return a+(n-1)*d;
+}
+struct Stree
+{
+#define lf (nd << 1)
+#define rt ((nd << 1) | 1)
+    long long t[4 * N];
+    node lazy[4 * N];
+    Stree()
+    {
+        memset(t, 0, sizeof t);
+        memset(lazy, 0, sizeof lazy);
+    }
+    inline void push(int nd, int lo, int hi)
+    {
+        if (lazy[nd].a==0&&lazy[nd].d==0)
+            return;
+        t[nd] = t[nd] + get_sum(lazy[nd].a,hi-lo+1,lazy[nd].d);
+        if (lo != hi)
+        {
+            ll mid=(lo+hi)>>1;
+            lazy[lf].a +=nth(lazy[nd].a,lo-lo+1,lazy[nd].d);
+            lazy[rt].a +=nth(lazy[nd].a,mid+1-lo+1,lazy[nd].d);
+            lazy[lf].d =lazy[nd].d+lazy[lf].d;
+            lazy[rt].d =lazy[nd].d+lazy[rt].d;
+        }
+        lazy[nd] = {0,0};
+    }
+    inline long long milao(long long x,long long y)
+    {
+        return x + y;
+    }
+    inline void uthao(int nd)
+    {
+        t[nd] = t[lf] + t[rt];
+    }
+    void build(int nd, int lo, int hi)
+    {
+        lazy[nd] = {0,0};
+        if (lo == hi)
+        {
+            t[nd] = v[lo];
+            return;
+        }
+        int mid = (lo + hi) >> 1;
+        build(lf, lo, mid);
+        build(rt, mid + 1, hi);
+        uthao(nd);
+    }
+    void update(int nd, int lo, int hi, int i, int j, long long a,long long d)
+    {
+        push(nd, lo, hi);
+        if (j < lo || hi < i)
+            return;
+        if (i <= lo && hi <= j)
+        {
+            lazy[nd] = {nth(a,lo-i+1,d),d}; //set lazy
+            push(nd, lo, hi);
+            return;
+        }
+        int mid = (lo + hi) >> 1;
+        update(lf, lo, mid, i, j, a,d);
+        update(rt, mid + 1, hi, i, j, a,d);
+        uthao(nd);
+    }
+    long long query(int nd, int lo, int hi, int i, int j)
+    {
+        push(nd, lo, hi);
+        if (i > hi || lo > j)
+            return 0;
+        if (i <= lo && hi <= j)
+            return t[nd];
+        int mid = (lo + hi) >> 1;
+        return milao(query(lf, lo, mid, i, j), query(rt, mid + 1, hi, i, j));
+    }
+};
+void solve()
+{
+    ///Problem CF-1661D
+    ll a,b;
+    cin>>a>>b;
+    vl vv(a+1);
+    fr(i,1,a) cin>>vv[i];
+    Stree st;
+    st.build(1,1,a);
+    ll an=0;
+    for(int i=a; i>0; i--)
+    {
+        ll cr=st.query(1,1,a,i,i);
+        if(cr>=vv[i])
+            continue;
+        ll d=vv[i]-cr;
+        if(i<b)
+        {
+            ll s=(d+i-1)/i;
+            an+=s;
+            st.update(1,1,a,1,b,1*s,1*s);
+        }
+        else
+        {
+            ll s=(d+b-1)/b;
+            an+=s;
+            st.update(1,1,a,i-b+1,i,1*s,1*s);
+        }
+    }
+    cout<<an<<endl;
+}
+int main()
+{
+    rj
+    //int t;cin>>t;fr(i,1,t) cout<<"Case "<<i<<": ",solve();
+    //ll t;scanf("%lld",&t);fr(i,1,t) printf("Case %lld: ",i),solve();
+    solve();
+    return 0;
+}
